@@ -120,3 +120,23 @@ Or add `sdk_read_many_post_build_request` hook to set filter parameters.
 **Root Cause:** Custom update implementations use `diff.Path.Contains()` incorrectly (prefix matching, not substring) or compute add/remove sets wrong.
 
 **Fix:** Replace broken `custom_method_name` with generated update + hooks (`sdk_update_pre_build_request`/`sdk_update_post_build_request`). Add `synced.when` for async resources.
+
+## Pattern 11: Update Rejected Because Resource Is in a Transitional State
+
+**Symptoms:** An update succeeds but the resource goes terminal shortly after with an error like "You can't update X in UPDATING state" / "resource is not in a modifiable state". Often only reproduces on the *second* reconcile: the first update is accepted, the resource enters a transitional state (e.g. UPDATING), and the controller immediately attempts another update before it returns to ACTIVE. Common with async update APIs whose Describe keeps returning the pre-update values until the change propagates (so the delta keeps firing).
+
+**Root Cause:** Generated `sdkUpdate` has no guard on the resource's current status. AWS updates are asynchronous (ACTIVE → UPDATING → ACTIVE) and reject any update issued while not ACTIVE.
+
+**Fix (preferred — declarative):** Add an `updateable.when` guard. Code-gen emits a status check at the top of `sdkUpdate` that returns `ackrequeue.NeededAfter` (transient, NOT terminal) when the status is not in the allowed set, so no update is attempted mid-flight:
+```yaml
+updateable:
+  when:
+    - path: Status.Status
+      in: [ACTIVE]
+  requeue_after_seconds: 30   # optional, default 30
+```
+There is a matching `deletable.when` for delete-state guards.
+
+**Fix (fallback — custom):** Only if the guard needs logic beyond a status-in-list check, add a `sdk_update_pre_build_request` hook that returns a requeue.
+
+> Prefer `updateable.when` over a hand-written `sdk_update_pre_build_request` requeue helper — the generated guard is identical and needs no `hooks.go` code or unit test.

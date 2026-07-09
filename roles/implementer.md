@@ -27,7 +27,7 @@ Working in CONTROLLER_DIR, modify `generator.yaml` following the plan:
    - Field renames: Add renames for ALL operations listed in the plan's Renames table
    - Immutable fields: `is_immutable: true`
    - Error codes: `exceptions.errors.404.code: <ErrorCode>`
-   - Tags: **You MUST explicitly configure tags for every new resource.** Set `tags.ignore: true` if the resource does NOT support TagResource/UntagResource, or `tags.ignore: false` (or omit, since false is default) if it does. Refer to the plan's Tagging section for the correct value.
+   - Tags: Set `tags.ignore: true` if the resource does NOT support TagResource/UntagResource
    - Wrapper fields: `output_wrapper_field_path` and/or `input_wrapper_field_path`
    - Cross-resource references: `references.resource`, `references.path`, and `references.service_name` (only for cross-service)
    - Fields to skip: `ignore.field_paths` for internal/unwanted fields

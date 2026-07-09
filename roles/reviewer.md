@@ -44,6 +44,8 @@ For every custom hook or `custom_method_name` proposed in the plan:
   - `is_immutable` — replaces hooks that reject updates to certain fields
   - `terminal_codes` — replaces hooks that set terminal conditions on certain errors
   - `update_operation` — replaces custom update wrappers for simple cases
+  - `update_operation.omit_unchanged_fields` — replaces a `sdk_update_post_build_request` hook that nils unchanged fields to avoid update-API errors
+  - `updateable.when` / `deletable.when` — replaces a `sdk_update_pre_build_request`/delete hook that requeues while the resource is in a transitional (non-ACTIVE) state
   - `set` — replaces hooks that copy fields between input/output
 - [ ] **Standard generated code insufficient**: Ask "what would `sdkCreate`/`sdkUpdate`/`sdkDelete` generate without this customization?" If the standard generated code would work correctly, the hook is unnecessary and is a MUST FIX.
 - [ ] **Justification is specific**: "Other resources in this controller use this hook" is NOT valid justification. Each hook must justify itself independently.
@@ -70,7 +72,6 @@ Read `generator.yaml` in CONTROLLER_DIR and verify:
 - [ ] **Field renames cover ALL operations where the field appears** — this is the #1 source of bugs. Cross-reference the plan's Renames table: every operation listed there must have a corresponding rename entry in generator.yaml. Check Create, Read, Update, Delete, AND List.
 - [ ] Immutable fields correctly marked with `is_immutable: true`
 - [ ] Error codes match what the plan documented (not guessed defaults)
-- [ ] Tags configuration is explicitly set — every new resource MUST have `tags.ignore: true` or `tags.ignore: false` in generator.yaml. Missing tags config is a MUST FIX (the default behavior without explicit config may not match the resource's actual tagging support).
 - [ ] Wrapper field paths correct (compare against plan's Wrapper Fields section)
 - [ ] Cross-resource references use correct path AND correct same-service/cross-service handling (same-service: NO `service_name`; cross-service: YES `service_name`)
 - [ ] Only non-default fields are configured (no redundant entries)

@@ -55,7 +55,9 @@ These apply everywhere. They are not repeated in individual sections.
 SERVICE=<service> AWS_SDK_GO_VERSION=v1.41.0 make build-controller
 ```
 
-Set `AWS_SDK_GO_VERSION` explicitly for reproducibility. Use the core SDK version (`github.com/aws/aws-sdk-go-v2`), not the service-specific version.
+Set `AWS_SDK_GO_VERSION` explicitly for reproducibility. It takes the **core** `aws-sdk-go-v2` release tag (e.g. `v1.41.0`).
+
+**Two model-source variants exist, and the service-specific one wins.** Code-gen fetches the Smithy model from either the core tag (`AWS_SDK_GO_VERSION` / metadata `aws_sdk_go_version`) or the per-service tag (`AWS_SERVICE_SDK_VERSION` / metadata `aws_service_sdk_version`, e.g. `service/<svc>/v1.29.0`). When the service-specific version is set it **takes precedence** and the core version is ignored for model fetching. When neither env var is passed, `make build-controller` reads both keys from `apis/<version>/ack-generate-metadata.yaml`. The two tags can resolve to **different model contents**, so a field/shape present at one version may be absent at another — always confirm against the source code-gen will actually use (see Troubleshooting → "Field not appearing in CRD").
 
 **Only configure non-default fields in generator.yaml.** If a field uses all defaults (mutable, no references, etc.), don't add it. Less config = less maintenance.
 

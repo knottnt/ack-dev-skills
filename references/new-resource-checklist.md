@@ -41,11 +41,13 @@ For each CRUD operation (`api_op_*.go`), note:
 | Resource in `ignore.resource_names`? | Remove it |
 | Field names differ across operations? | Add `renames` for EACH operation |
 | Async lifecycle states? | Add `synced.when` |
+| Update rejected while not ACTIVE (async update API)? | Add `updateable.when`; `deletable.when` for deletes |
+| Update API rejects unchanged fields being re-sent? | Add `update_operation.omit_unchanged_fields: true` |
 | No tag support? | Add `tags.ignore: true` |
 | Fields only in Describe output? | Add `from.operation` + `is_read_only: true` |
 | Depends on parent resource? | Add `references` |
 | Cross-service reference? | Add `references.service_name` |
-| Update needs custom logic? | Add `update_operation.custom_method_name` |
+| Update needs custom logic | Add `update_operation.custom_method_name` |
 | Server sets defaults? | Add `late_initialize` with `skip_incomplete_check: {}` |
 | K8s-irrelevant Create input fields? | Add to `ignore.field_paths` |
 | Non-standard 404? | Add `exceptions.errors.404.code` |

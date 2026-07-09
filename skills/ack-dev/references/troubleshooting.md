@@ -20,7 +20,7 @@
 
 **Field not appearing in CRD:**
 - Check field isn't in `ignore.field_paths`
-- Verify field exists in AWS API model
+- Verify field exists in the AWS API model
 - Check for field name conflicts
 - Re-run code generation
 
