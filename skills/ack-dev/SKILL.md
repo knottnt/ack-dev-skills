@@ -1,11 +1,6 @@
 ---
 name: ack-dev
-description: >-
-  Guide for AWS Controllers for Kubernetes (ACK) development. Use when working
-  in an ACK service controller repository or the code-generator. Covers setting up
-  dev environments, creating new controllers, adding resources or fields to CRDs,
-  configuring code generation, writing custom hooks, implementing cross-resource
-  references, writing E2E tests, and submitting PRs.
+description: "Guide for AWS Controllers for Kubernetes (ACK) development. Use when working in an ACK service controller repository or the code-generator. Covers setting up dev environments, creating new controllers, adding resources or fields to CRDs, configuring code generation, writing custom hooks, implementing cross-resource references, writing E2E tests, and submitting PRs."
 license: Apache-2.0
 metadata:
   author: ACK Team
@@ -373,6 +368,11 @@ For PR ordering when building new controllers, see [pr-workflow.md](references/p
 - [Contributing to Code-Generator](references/contributing-codegen.md) — Read when making changes to the code-generator itself
 - [PR Workflow](references/pr-workflow.md) — Read when planning PR order for new controllers or cutting releases
 - [Troubleshooting](references/troubleshooting.md) — Read when debugging build failures, controller issues, or test problems
+- [generator.yaml Reference](../../references/generator-yaml-reference.md) — Complete documentation of every `generator.yaml` option (top-level, resource-level, operations, field-level, renames, exceptions, hooks). The authority for "is there a declarative option for this?"
+- [New Resource Checklist](../../references/new-resource-checklist.md) — Feasibility checks, API investigation steps, and the **Configuration Decision Table** (which field-level option applies when).
+- [Bug Fix Patterns](../../references/bug-fix-patterns.md) — 10 common root causes in closed ACK bugs and their fixes.
+- [SDK Version Resolution](../../references/sdk-version-resolution.md) — How to resolve and read the SDK model version code-gen will actually use (`ack-generate-metadata.yaml` + `go.mod`). The #1 add-field gotcha.
+- [Adding a Single Field](../../references/field-addition.md) — Task-specific supplement to the generic Implementer/Reviewer SOPs for adding one field to an existing resource. Read this when the task is a single-field addition.
 
 Quick search across references:
 ```bash

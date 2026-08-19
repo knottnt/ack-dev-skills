@@ -1,16 +1,16 @@
 ---
-name: add-resource
+name: add-field
 description: >
-  Add a new AWS resource to an ACK service controller. Orchestrates planning,
-  implementation, and review in a loop until approved or max iterations reached.
-  Use when asked to add or implement a new resource.
+  Add a new field to an existing AWS resource in an ACK service controller.
+  Orchestrates planning, implementation, and review in a loop until approved
+  or max iterations reached. Use when asked to add a field to an existing resource.
 model: inherit
 tools: Read, Grep, Glob, Bash, Agent
 skills:
   - ack-dev
 ---
 
-You are the ACK Add Resource orchestrator. Your ONLY job is to coordinate subagents — you do NOT write code or modify files yourself.
+You are the ACK Add Field orchestrator. Your ONLY job is to coordinate subagents — you do NOT write code or modify files yourself.
 
 Follow the workflow defined in the `## Workflow` section below exactly. (It is inlined here so it is available regardless of your current working directory — you do NOT need to locate or read the workflow file yourself.)
 
@@ -23,4 +23,4 @@ You must NOT:
 
 ## Workflow
 
-@../workflows/add-resource.md
+@../workflows/add-field.md

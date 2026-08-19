@@ -107,6 +107,23 @@ claude --plugin-dir ../ack-dev-skills --agent ack-dev:ack-reviewer "Please revie
 "
 ```
 
+### Add Field Workflow
+
+The `add-field` workflow is the field-scoped counterpart to `add-resource`. It runs the same **Plan → Review → Implement → Review → E2E test** loop, but targets a single new field on a resource that already exists rather than a whole new resource. It uses a dedicated field planner (`ack-field-planner`), where research diverges most, and reuses the generic `ack-implementer` / `ack-reviewer` agents for the rest.
+
+See [`workflows/add-field.md`](workflows/add-field.md) for full details.
+
+#### Claude Code
+
+Load the plugin and start the `add-field` agent directly from your controller repo:
+
+```bash
+cd /path/to/backup-controller
+claude --plugin-dir ../ack-dev-skills --agent ack-dev:add-field "add the EncryptionKeyArn field to the BackupVault resource"
+```
+
+For a single-pass alternative that also handles GitHub issue triage (no subagents), the `resolve-issue` skill classifies `kind/new-field` issues and resolves them inline via its Phase 2C.
+
 ## Contributing
 
 This skill is maintained by the ACK team and updated based on real development experience.
@@ -125,19 +142,26 @@ We incorporate learnings from controller development, customer feedback, and tea
 
 ```
 workflows/                      # Multi-phase orchestration definitions
-└── add-resource.md             # Plan → Review → Implement → Review → E2E loop
+├── add-resource.md             # Plan → Review → Implement → Review → E2E loop (new resource)
+└── add-field.md                # Same loop, scoped to adding a field to an existing resource
 
 agents/                         # Claude Code subagent definitions (plugin mode)
-├── add-resource.md             # Orchestrator — spawns planner/implementer/reviewer
-├── ack-planner.md              # Plans resource configuration
-├── ack-implementer.md          # Writes code, hooks, tests
-└── ack-reviewer.md             # Reviews plans and implementations
+├── add-resource.md             # Orchestrator — spawns resource planner/implementer/reviewer
+├── add-field.md                # Orchestrator — spawns field planner/implementer/reviewer
+├── ack-planner.md              # Plans new-resource configuration
+├── ack-implementer.md          # Writes code, hooks, tests (resource or field)
+├── ack-reviewer.md             # Reviews plans and implementations (resource or field)
+└── ack-field-planner.md        # Plans a single field addition
 
 roles/                          # Role SOPs (tool-agnostic, used by both agents and Kiro)
-├── planner.md                  # Planner methodology and constraints
-├── implementer.md              # Implementer methodology and constraints
-├── reviewer.md                 # Reviewer methodology and constraints
+├── planner.md                  # Resource planner methodology
+├── field-planner.md            # Field planner methodology (research diverges most)
+├── implementer.md              # Generic implementer methodology (resource + field)
+├── reviewer.md                 # Generic reviewer methodology (plan + implementation)
 └── schemas/                    # Structured output schemas for role handoffs
+    ├── plan-output.md          # New-resource plan schema
+    ├── field-plan-output.md    # Add-field plan schema
+    └── review-output.md        # Reviewer output schema (shared)
 
 skills/ack-dev/                 # Agent Skill directory
 ├── SKILL.md                    # Core instructions and common workflows
@@ -159,7 +183,9 @@ skills/resolve-issue/           # Issue triage and resolution skill
 references/                     # Shared reference docs (available to all skills)
 ├── generator-yaml-reference.md # Complete generator.yaml option docs
 ├── bug-fix-patterns.md         # Common root causes and fixes
-└── new-resource-checklist.md   # Feasibility checks and config decisions
+├── new-resource-checklist.md   # Feasibility checks and config decisions
+├── field-addition.md           # Field-specific implementer/reviewer specifics
+└── sdk-version-resolution.md   # Resolving/reading the correct SDK model version
 ```
 
 ## License

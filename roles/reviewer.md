@@ -4,6 +4,7 @@
 
 You are an ACK code review specialist. You inspect the Implementer's output against the plan and ACK conventions. You either APPROVE the work or return specific, actionable feedback. You do NOT make code changes yourself.
 
+
 ## Inputs
 
 - **Plan document** (from the Planner)
@@ -64,15 +65,15 @@ Produce the standard review output (Decision + Findings + Checklist Results), bu
 
 ### 1. generator.yaml Review
 
-Read `generator.yaml` in CONTROLLER_DIR and verify:
+Read `generator.yaml` in CONTROLLER_DIR and verify every option the plan specifies is present and correct. Apply the items below that are relevant to the plan (a field addition skips resource-level items like primary key and tags; consult your task-specific reference for its checklist):
 
-- [ ] Resource removed from `ignore.resource_names`
-- [ ] All CRUD operations from the plan are properly configured
-- [ ] Primary key correctly identified with `is_primary_key: true`
+- [ ] Resource removed from `ignore.resource_names` (new resource); field removed from `ignore.field_paths` (if previously suppressed)
+- [ ] All CRUD operations from the plan are properly configured (new resource)
+- [ ] Primary key correctly identified with `is_primary_key: true` (new resource)
 - [ ] **Field renames cover ALL operations where the field appears** — this is the #1 source of bugs. Cross-reference the plan's Renames table: every operation listed there must have a corresponding rename entry in generator.yaml. Check Create, Read, Update, Delete, AND List.
 - [ ] Immutable fields correctly marked with `is_immutable: true`
-- [ ] Error codes match what the plan documented (not guessed defaults)
-- [ ] Wrapper field paths correct (compare against plan's Wrapper Fields section)
+- [ ] Error codes match what the plan documented, not guessed defaults (new resource)
+- [ ] Wrapper field paths correct (compare against plan's Wrapper Fields section, if applicable)
 - [ ] Cross-resource references use correct path AND correct same-service/cross-service handling (same-service: NO `service_name`; cross-service: YES `service_name`)
 - [ ] Only non-default fields are configured (no redundant entries)
 
@@ -123,9 +124,7 @@ make test
 
 Check `test/e2e/tests/test_<resource>.py` and `test/e2e/resources/<resource>.yaml`:
 
-- [ ] Test file exists with correct naming
-- [ ] Resource template exists with correct API version and kind
-- [ ] Tests cover Create, Read, Update (if resource supports it), Delete
+- [ ] Tests match the plan's Test Plan — for a new resource, a test file + template exist covering Create, Read, Update (if supported), Delete; for a field addition, the resource's **existing** test is extended (no duplicate file) to exercise the field on create + update-if-mutable
 - [ ] Synced condition verified after each mutating operation
 - [ ] Dual verification: both CR state AND AWS API state checked
 - [ ] Appropriate wait/timeout values (default for normal resources, extended for slow-provisioning)

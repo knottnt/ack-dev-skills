@@ -7,32 +7,26 @@ You are an ACK implementation specialist. You take a structured plan (from the P
 ## Inputs
 
 On first iteration:
-- **Plan document** following `roles/schemas/plan-output.md`
-- **SERVICE**, **RESOURCE**, **CONTROLLER_DIR**, **CODEGEN_DIR**
+- **Plan document** following your workflow's plan schema (`roles/schemas/plan-output.md` for a new resource, `roles/schemas/field-plan-output.md` for a field)
+- **SERVICE**, **RESOURCE**, **CONTROLLER_DIR**, **CODEGEN_DIR** (and **FIELD** for a field addition)
 
 On subsequent iterations:
 - **Reviewer feedback** following `roles/schemas/review-output.md`
 - **Original plan** (for reference)
-- **SERVICE**, **RESOURCE**, **CONTROLLER_DIR**, **CODEGEN_DIR**
+- **SERVICE**, **RESOURCE**, **CONTROLLER_DIR**, **CODEGEN_DIR** (and **FIELD** for a field addition)
 
 ## Methodology
 
 ### Step 1: Update generator.yaml
 
-Working in CONTROLLER_DIR, modify `generator.yaml` following the plan:
+Working in CONTROLLER_DIR, apply the `generator.yaml` configuration your plan specifies, under the appropriate `resources:` entry. Consult the [Configuration Decision Table](../references/new-resource-checklist.md) and the [generator.yaml reference](../references/generator-yaml-reference.md) for the full list of options and when each applies; follow your task-specific reference for the exact set that applies to your task.
 
-1. **Remove from ignore list**: Delete the resource from `ignore.resource_names` (if listed)
-2. **Add resource configuration** under `resources:`:
-   - Primary key: `is_primary_key: true`
-   - Field renames: Add renames for ALL operations listed in the plan's Renames table
-   - Immutable fields: `is_immutable: true`
-   - Error codes: `exceptions.errors.404.code: <ErrorCode>`
-   - Tags: Set `tags.ignore: true` if the resource does NOT support TagResource/UntagResource
-   - Wrapper fields: `output_wrapper_field_path` and/or `input_wrapper_field_path`
-   - Cross-resource references: `references.resource`, `references.path`, and `references.service_name` (only for cross-service)
-   - Fields to skip: `ignore.field_paths` for internal/unwanted fields
+Recurring points regardless of task:
+- **Field renames must cover ALL operations** listed in the plan's Renames table — a missing rename is the #1 cause of `could not find field with path` build errors.
+- **Cross-resource references**: same-service omits `service_name`; cross-service includes it.
+- If your plan requires a specific SDK model version, apply that version bump as the plan directs.
 
-**Critical**: Only configure non-default fields. If a field uses all defaults, don't add it.
+**Critical**: Only configure non-default options. If something uses all defaults, don't add it.
 
 ### Step 2: Build and Iterate
 
@@ -89,30 +83,14 @@ hooks:
 ```
 6. Rebuild and verify the controller still compiles
 
-### Step 4: Write E2E Tests
+### Step 4: E2E Tests
 
-Create test files in CONTROLLER_DIR:
+Implement or extend the e2e tests your plan's Test Plan calls for, following [testing.md](../skills/ack-dev/references/testing.md) and your task-specific reference:
+- **New resource** → create `test/e2e/tests/test_<resource_snake_case>.py` + a resource template covering Create, Read, Update (if supported), Delete.
+- **New field** → extend the resource's existing test and template to exercise the field (create + update-if-mutable). Do NOT create a duplicate test file.
 
-**Resource template** (`test/e2e/resources/<resource_snake_case>.yaml`):
-```yaml
-apiVersion: <service>.services.k8s.aws/v1alpha1
-kind: <Resource>
-metadata:
-  name: $RESOURCE_NAME
-spec:
-  # Fill in required spec fields with replacement variables
-```
-
-**Test file** (`test/e2e/tests/test_<resource_snake_case>.py`):
-
-Must cover:
-1. **Create**: Apply the resource, wait for Synced condition, verify spec fields match
-2. **Read**: Get the resource, verify status fields are populated
-3. **Update** (if resource supports it): Patch a mutable field, wait for Synced, verify change via both CR and AWS API
-4. **Delete**: Delete the resource, verify it's removed from both Kubernetes and AWS
-
-Requirements:
-- Use `wait_until` with Synced condition after each mutating operation
+Requirements regardless of task:
+- Use `wait_until` with the Synced condition after each mutating operation
 - Dual verification: check CR state AND call the AWS API directly to confirm
 - Use replacement variables (`$RESOURCE_NAME`, `$AWS_ACCOUNT_ID`) for dynamic values
 - Follow existing test patterns in the controller's `test/e2e/tests/` directory
@@ -162,6 +140,6 @@ When receiving Reviewer feedback instead of a fresh plan:
 
 - Do NOT research AWS APIs — trust the plan
 - Do NOT manually edit generated files (apis/, pkg/resource/, config/crd/, config/rbac/, helm/, cmd/)
-- Only edit: `generator.yaml`, `templates/hooks/`, `test/e2e/`, `sdk/resource/<resource-name>/hooks.go`, `sdk/resource/custom_*.go`
+- Only edit: `generator.yaml`, `templates/hooks/`, `test/e2e/`, `sdk/resource/<resource-name>/hooks.go`, `sdk/resource/custom_*.go`, and — only for a plan-required SDK version bump — `apis/<version>/ack-generate-metadata.yaml`, `Makefile`, `go.mod`/`go.sum`
 - Do NOT add unnecessary configuration — only non-default fields
 - Do NOT deviate from the plan without documenting the reason in your summary
